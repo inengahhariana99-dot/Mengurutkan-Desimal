@@ -1,0 +1,965 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Petualangan Desimal - I Nengah Hariana, S.Pd</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@700;800;900;1000&display=swap" rel="stylesheet">
+    <!-- Canvas Confetti -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        body {
+            font-family: 'Nunito', sans-serif;
+            touch-action: manipulation;
+            min-height: 100vh;
+            transition: background 0.5s ease-in-out;
+            overflow-x: hidden;
+            position: relative;
+        }
+        .font-fredoka { font-family: 'Fredoka', cursive; }
+
+        /* Latar tetap: langit cerah dengan gradasi warna ceria */
+        body {
+            background: linear-gradient(135deg, #7dd3fc 0%, #c4b5fd 34%, #fbcfe8 68%, #fde68a 100%);
+            background-size: 200% 200%;
+            background-attachment: fixed;
+            animation: sky-drift 18s ease infinite;
+        }
+
+        /* Decorative Parallax Background Elements */
+        .bg-element {
+            pointer-events: none;
+            position: fixed;
+            z-index: 0;
+            user-select: none;
+        }
+
+        /* Glassmorphic UI Containers */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(16px);
+            box-shadow: 0 20px 35px -10px rgba(0, 0, 0, 0.25);
+        }
+
+        /* 3D Toy Button System */
+        .btn-3d {
+            transition: all 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 6px 0 var(--tw-shadow-color, #1e293b);
+        }
+        .btn-3d:active {
+            transform: translateY(4px);
+            box-shadow: 0 2px 0 var(--tw-shadow-color, #1e293b);
+        }
+
+        /* Colorful Rainbow Cards */
+        .number-card {
+            user-select: none;
+            touch-action: none;
+            transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.2s, filter 0.2s;
+            box-shadow: 0 10px 20px -5px rgba(0,0,0,0.3);
+        }
+
+        .number-card:hover {
+            transform: translateY(-6px) scale(1.05);
+            filter: brightness(1.05);
+        }
+
+        .number-card.selected {
+            transform: scale(1.1);
+            z-index: 30;
+            box-shadow: 0 0 0 6px #f59e0b, 0 15px 25px rgba(0,0,0,0.35);
+        }
+
+        .number-card.dragging {
+            opacity: 0.5;
+            transform: scale(1.05);
+        }
+
+        /* Target Drop Slots */
+        .drop-slot {
+            transition: all 0.2s ease;
+        }
+        .drop-slot.drag-over {
+            background-color: #fef08a !important;
+            border-color: #f59e0b !important;
+            transform: scale(1.04);
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-8px); }
+            40%, 80% { transform: translateX(8px); }
+        }
+        .animate-shake {
+            animation: shake 0.4s ease-in-out;
+        }
+
+        @keyframes float-slow {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-12px); }
+        }
+        .animate-float {
+            animation: float-slow 4s infinite ease-in-out;
+        }
+
+        @keyframes pulse-subtle {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        .animate-pulse-subtle {
+            animation: pulse-subtle 2.5s infinite ease-in-out;
+        }
+
+    /* ===== POLISH UPDATE: vibrant classroom adventure + clearer numerals ===== */
+    @keyframes sky-drift {
+      0%,100% { background-position: 0% 0%; }
+      50% { background-position: 100% 80%; }
+    }
+    body::before {
+      content: "";
+      position: fixed; inset: 0; pointer-events: none; z-index: 0;
+      background:
+        radial-gradient(circle at 12% 22%, rgba(255,255,255,.42) 0 2px, transparent 3px),
+        radial-gradient(circle at 82% 18%, rgba(255,255,255,.38) 0 3px, transparent 4px),
+        radial-gradient(circle at 70% 72%, rgba(255,255,255,.25) 0 2px, transparent 3px),
+        radial-gradient(ellipse at 50% 110%, rgba(255,255,255,.25), transparent 55%);
+      background-size: 140px 140px, 190px 190px, 120px 120px, auto;
+    }
+    .glass-card {
+      background: rgba(255,255,255,.91);
+      backdrop-filter: blur(18px) saturate(1.2);
+      box-shadow: 0 22px 50px -18px rgba(15,23,42,.35), 0 5px 14px rgba(255,255,255,.38) inset;
+    }
+    header.glass-card {
+      border-color: rgba(255,255,255,.95);
+      box-shadow: 0 18px 40px -16px rgba(30,41,59,.35), 0 0 0 1px rgba(255,255,255,.55) inset;
+    }
+    .number-card, #compare-card-left, #compare-card-right {
+      font-family: 'Fredoka', 'Nunito', sans-serif !important;
+      font-variant-numeric: tabular-nums;
+      letter-spacing: .025em;
+      text-shadow: 0 2px 0 rgba(0,0,0,.10), 0 5px 12px rgba(0,0,0,.12);
+      border-radius: 1.35rem !important;
+      outline: 1px solid rgba(255,255,255,.45);
+      outline-offset: -5px;
+    }
+    .number-card {
+      min-width: 96px;
+      background-image: linear-gradient(145deg, rgba(255,255,255,.20), transparent 48%), var(--tw-gradient-stops);
+    }
+    #compare-card-left, #compare-card-right {
+      position: relative; overflow: hidden;
+      box-shadow: 0 12px 0 rgba(30,41,59,.13), 0 18px 28px rgba(15,23,42,.22) !important;
+    }
+    #compare-card-left::after, #compare-card-right::after {
+      content: ""; position:absolute; left:12%; right:12%; top:8px; height:7px;
+      border-radius:999px; background:rgba(255,255,255,.32);
+    }
+    #compare-symbol-box {
+      font-family:'Fredoka',sans-serif;
+      background:linear-gradient(145deg,#fff,#e0e7ff);
+      box-shadow:0 8px 0 rgba(49,46,129,.12), inset 0 2px 8px rgba(99,102,241,.12);
+    }
+    .drop-slot {
+      background-image: radial-gradient(rgba(99,102,241,.11) 1px, transparent 1px);
+      background-size: 12px 12px;
+    }
+    button { -webkit-tap-highlight-color: transparent; }
+    button:not(:disabled) { transition: transform .18s ease, filter .18s ease, box-shadow .18s ease; }
+    button:not(:disabled):hover { filter: brightness(1.045); }
+    .btn-3d { box-shadow: 0 6px 0 var(--tw-shadow-color, #1e293b), 0 10px 18px rgba(15,23,42,.12); }
+    .btn-3d:active { box-shadow: 0 2px 0 var(--tw-shadow-color, #1e293b); }
+    @media (prefers-reduced-motion: reduce) {
+      body { animation:none; }
+      *, *::before, *::after { animation-duration:.01ms !important; transition-duration:.01ms !important; }
+    }
+
+    </style>
+</head>
+<body class="flex flex-col justify-between p-2 sm:p-4 text-slate-800 select-none min-h-screen relative">
+
+    <!-- Hiasan latar abstrak yang tetap, tanpa pilihan tema -->
+    <div id="bg-decorations" class="bg-element inset-0 overflow-hidden" aria-hidden="true">
+        <div class="absolute top-8 left-[7%] text-5xl opacity-70 animate-float">✦</div>
+        <div class="absolute top-24 right-[9%] text-6xl opacity-60 animate-pulse-subtle">☁</div>
+        <div class="absolute top-[44%] left-[4%] text-3xl opacity-60 animate-float">✧</div>
+        <div class="absolute top-[58%] right-[6%] text-4xl opacity-60 animate-float">✦</div>
+        <div class="absolute bottom-8 left-[20%] text-3xl opacity-50 animate-pulse-subtle">●</div>
+        <div class="absolute bottom-12 right-[24%] text-4xl opacity-50 animate-float">✧</div>
+    </div>
+
+    <!-- WRAPPER CONTENT WITH Z-INDEX ABOVE DECORATIONS -->
+    <div class="relative z-10 flex flex-col justify-between min-h-screen">
+
+        <!-- HEADER & NAVBAR -->
+        <header class="max-w-5xl mx-auto w-full glass-card rounded-3xl p-3 sm:p-4 border-4 border-white mb-3 sm:mb-4 shadow-2xl">
+            <div class="flex flex-col md:flex-row items-center justify-between gap-3">
+                
+                <!-- Title & Developer Badge -->
+                <div class="flex items-center gap-3 w-full md:w-auto justify-between md:justify-start">
+                    <div class="flex items-center gap-3">
+                        <div class="bg-gradient-to-tr from-amber-400 to-yellow-300 p-2.5 rounded-2xl shadow-lg border-2 border-amber-200 text-amber-950 text-3xl flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14 animate-pulse-subtle">
+                            ✨
+                        </div>
+                        <div>
+                            <h1 class="text-xl sm:text-3xl font-black font-fredoka text-indigo-700 tracking-wide drop-shadow-sm flex items-center gap-2">
+                                Petualangan Desimal SD!
+                            </h1>
+                            <!-- DEVELOPER CREDIT -->
+                            <div class="flex items-center gap-1.5 text-xs font-black text-rose-600 bg-rose-100/90 px-2.5 py-0.5 rounded-full border border-rose-300 w-fit mt-0.5 shadow-sm">
+                                <i class="fa-solid fa-user-gear text-rose-500"></i>
+                                <span>Pengembang: <b>I Nengah Hariana, S.Pd</b></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Developer Info Button (Mobile) -->
+                    <button onclick="toggleDevModal()" class="md:hidden bg-amber-400 hover:bg-amber-500 text-amber-950 p-2 rounded-xl text-xs font-black shadow border border-amber-200">
+                        <i class="fa-solid fa-circle-info text-base"></i>
+                    </button>
+                </div>
+
+                <!-- Theme Switcher & Navigation Tabs -->
+                <div class="flex flex-col sm:flex-row items-center gap-2 w-full md:w-auto">
+                    
+                    <!-- TAB SWITCHER -->
+                    <div class="bg-slate-200/90 p-1.5 rounded-2xl border-2 border-slate-300/80 flex items-center gap-1.5 w-full sm:w-auto justify-center">
+                        <button id="tab-sort" onclick="switchTab('sort')" class="px-3 py-2 rounded-xl font-black text-xs sm:text-sm transition-all shadow-md bg-indigo-600 text-white flex items-center justify-center gap-1.5">
+                            🧩 1. Urutkan 5 Desimal
+                        </button>
+                        <button id="tab-compare" onclick="switchTab('compare')" class="px-3 py-2 rounded-xl font-black text-xs sm:text-sm transition-all text-slate-700 hover:bg-slate-300 flex items-center justify-center gap-1.5">
+                            ⚖️ 2. Membandingkan
+                        </button>
+                        <button id="tab-help" onclick="switchTab('help')" class="px-3 py-2 rounded-xl font-black text-xs sm:text-sm transition-all text-slate-700 hover:bg-slate-300 flex items-center justify-center gap-1.5">
+                            💡 3. Petunjuk
+                        </button>
+                    </div>
+
+                </div>
+
+            </div>
+        </header>
+
+        <!-- MAIN CONTENT AREA -->
+        <main class="max-w-5xl mx-auto w-full flex-1 flex flex-col gap-4">
+
+            <!-- ========================================== -->
+            <!-- TAB 1: MENGURUTKAN 5 BILANGAN DESIMAL -->
+            <!-- ========================================== -->
+            <section id="mode-sort" class="flex flex-col gap-4">
+                <div class="glass-card p-4 sm:p-6 rounded-3xl border-4 border-white shadow-2xl flex flex-col gap-5">
+                    
+                    <!-- Controls Header -->
+                    <div class="flex flex-col md:flex-row items-center justify-between gap-3 border-b-2 border-slate-200 pb-4">
+                        
+                        <!-- Direction Selector -->
+                        <div class="flex items-center gap-2 bg-indigo-50 p-1.5 rounded-2xl border border-indigo-200 w-full md:w-auto justify-center">
+                            <span class="text-xs font-black text-indigo-900 px-2">Arah Urutan:</span>
+                            <button id="btn-asc" onclick="setSortDirection('asc')" class="px-3.5 py-2 rounded-xl font-black text-xs sm:text-sm bg-indigo-600 text-white shadow">
+                                ⬆️ Terkecil ➔ Terbesar
+                            </button>
+                            <button id="btn-desc" onclick="setSortDirection('desc')" class="px-3.5 py-2 rounded-xl font-black text-xs sm:text-sm bg-slate-200 text-slate-700 hover:bg-slate-300">
+                                ⬇️ Terbesar ➔ Terkecil
+                            </button>
+                        </div>
+
+                        <!-- Reset / New Cards Button -->
+                        <button onclick="resetSortGame()" class="btn-3d bg-amber-400 hover:bg-amber-500 shadow-amber-800 text-amber-950 font-black text-xs sm:text-sm px-6 py-2.5 rounded-2xl border-2 border-amber-300 flex items-center justify-center gap-2 active:scale-95 transition w-full md:w-auto">
+                            <i class="fa-solid fa-arrows-rotate text-base"></i> Acak Ulang / Soal Baru
+                        </button>
+
+                    </div>
+
+                    <!-- Instruction Banner -->
+                    <div class="text-center bg-gradient-to-r from-amber-100 via-orange-100 to-yellow-100 border-2 border-amber-300 p-3 rounded-2xl shadow-sm">
+                        <p class="text-xs sm:text-sm font-extrabold text-amber-950">
+                            👇 <span class="text-rose-600 font-black">Petunjuk:</span> Tarik (Drag) atau Tap/Klik kartu angka berwarna di bawah, lalu tempatkan pada kotak jawaban!
+                        </p>
+                    </div>
+
+                    <!-- SOURCE CARDS CONTAINER (5 RANDOM CARDS) -->
+                    <div class="flex flex-col gap-2">
+                        <span class="text-xs font-black uppercase text-slate-500 tracking-wider text-center">Deret 5 Angka Desimal Acak:</span>
+                        <div id="source-cards-container" class="flex flex-wrap items-center justify-center gap-3 sm:gap-4 p-4 sm:p-5 bg-slate-100/90 rounded-3xl border-3 border-dashed border-slate-300 min-h-[120px]">
+                            <!-- 5 Rainbow Cards Injected Here -->
+                        </div>
+                    </div>
+
+                    <!-- DROP TARGET SLOTS CONTAINER -->
+                    <div class="flex flex-col gap-2 my-2">
+                        <div class="flex items-center justify-between px-2">
+                            <span id="label-start" class="text-xs sm:text-sm font-black text-indigo-800 bg-indigo-100 px-3.5 py-1.5 rounded-full border border-indigo-300 shadow-sm">
+                                ⬅️ Terkecil
+                            </span>
+                            <span class="text-xs sm:text-sm font-black uppercase text-slate-600 tracking-wider">Kotak Jawaban Urutan:</span>
+                            <span id="label-end" class="text-xs sm:text-sm font-black text-purple-800 bg-purple-100 px-3.5 py-1.5 rounded-full border border-purple-300 shadow-sm">
+                                Terbesar ➡️
+                            </span>
+                        </div>
+
+                        <!-- 5 Target Slots Grid -->
+                        <div id="target-slots-container" class="grid grid-cols-5 gap-1.5 sm:gap-3 p-3 sm:p-4 bg-indigo-950/10 rounded-3xl border-3 border-indigo-200">
+                            <!-- 5 Target Slots Injected Here -->
+                        </div>
+                    </div>
+
+                    <!-- CHECK ANSWER BUTTON & FEEDBACK -->
+                    <div class="flex flex-col items-center gap-3">
+                        <button onclick="checkSortAnswer()" class="btn-3d bg-emerald-500 hover:bg-emerald-600 shadow-emerald-950 text-white font-black text-base sm:text-lg px-8 py-3.5 rounded-2xl border-2 border-emerald-300 flex items-center justify-center gap-2 active:scale-95 transition w-full sm:w-auto">
+                            <i class="fa-solid fa-circle-check text-xl"></i> Periksa Jawaban Urutan
+                        </button>
+
+                        <div id="sort-feedback" class="hidden w-full text-center p-4 rounded-2xl font-black text-xs sm:text-sm border-2">
+                            <!-- Feedback Message Injected Here -->
+                        </div>
+                    </div>
+
+                </div>
+            </section>
+
+
+            <!-- ========================================== -->
+            <!-- TAB 2: MEMBANDINGKAN BILANGAN (<, >, =) -->
+            <!-- ========================================== -->
+            <section id="mode-compare" class="hidden flex flex-col gap-4">
+                <div class="glass-card p-4 sm:p-6 rounded-3xl border-4 border-white shadow-2xl flex flex-col gap-5">
+                    
+                    <!-- Compare Header & Score -->
+                    <div class="flex items-center justify-between border-b-2 border-slate-200 pb-3">
+                        <div class="flex items-center gap-2">
+                            <span class="bg-purple-600 text-white px-3 py-1 rounded-full font-fredoka text-xs font-bold uppercase shadow-sm">Kuis Membandingkan</span>
+                            <span class="bg-amber-100 text-amber-900 px-3 py-1 rounded-full font-extrabold text-xs">Pilih Simbol Tepat</span>
+                        </div>
+
+                        <!-- Score Widget -->
+                        <div class="flex items-center gap-2 bg-amber-50 border-2 border-amber-200 px-3.5 py-1 rounded-2xl shadow-inner">
+                            <i class="fa-solid fa-star text-amber-500 text-lg"></i>
+                            <span class="text-xs font-black text-slate-500 uppercase">Skor:</span>
+                            <span id="compare-score" class="text-xl font-black font-fredoka text-amber-600">0</span>
+                        </div>
+                    </div>
+
+                    <!-- Question Prompt -->
+                    <div class="text-center my-1">
+                        <h2 class="font-fredoka text-lg sm:text-2xl text-slate-800 leading-snug">
+                            Bandingkan dua bilangan desimal berikut ini!
+                        </h2>
+                    </div>
+
+                    <!-- CARDS COMPARISON ARENA -->
+                    <div class="flex items-center justify-center gap-2 sm:gap-6 my-2">
+                        
+                        <!-- Left Big Card -->
+                        <div class="flex-1 max-w-[180px] sm:max-w-[220px]">
+                            <div id="compare-card-left" class="bg-gradient-to-br from-rose-500 via-pink-500 to-rose-600 text-white rounded-3xl p-4 sm:p-6 text-center shadow-2xl border-4 border-white font-fredoka text-4xl sm:text-6xl font-black drop-shadow">
+                                3.5
+                            </div>
+                        </div>
+
+                        <!-- Middle Selected Symbol Placeholder -->
+                        <div id="compare-symbol-box" class="w-16 h-16 sm:w-24 sm:h-24 bg-white border-4 border-dashed border-slate-400 rounded-3xl flex items-center justify-center font-fredoka text-3xl sm:text-5xl font-black text-indigo-700 shadow-inner">
+                            ?
+                        </div>
+
+                        <!-- Right Big Card -->
+                        <div class="flex-1 max-w-[180px] sm:max-w-[220px]">
+                            <div id="compare-card-right" class="bg-gradient-to-br from-sky-500 via-blue-500 to-indigo-600 text-white rounded-3xl p-4 sm:p-6 text-center shadow-2xl border-4 border-white font-fredoka text-4xl sm:text-6xl font-black drop-shadow">
+                                3.2
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- BIG SYMBOL BUTTONS (< , > , =) -->
+                    <div class="flex flex-col gap-2">
+                        <span class="text-xs font-black uppercase text-slate-500 tracking-wider text-center">Pilih Simbol Perbandingan:</span>
+                        <div class="grid grid-cols-3 gap-3 sm:gap-4 max-w-lg mx-auto w-full">
+                            
+                            <!-- Button < -->
+                            <button onclick="checkCompareChoice('<')" class="btn-3d bg-gradient-to-b from-indigo-500 to-indigo-700 shadow-indigo-950 text-white rounded-2xl p-3 sm:p-4 font-fredoka text-3xl sm:text-5xl font-black flex flex-col items-center justify-center border-2 border-indigo-300 active:scale-95">
+                                &lt;
+                                <span class="text-[10px] sm:text-xs font-extrabold opacity-90 tracking-normal font-sans">Lebih Kecil</span>
+                            </button>
+
+                            <!-- Button = -->
+                            <button onclick="checkCompareChoice('=')" class="btn-3d bg-gradient-to-b from-amber-400 to-amber-600 shadow-amber-950 text-amber-950 rounded-2xl p-3 sm:p-4 font-fredoka text-3xl sm:text-5xl font-black flex flex-col items-center justify-center border-2 border-amber-200 active:scale-95">
+                                =
+                                <span class="text-[10px] sm:text-xs font-extrabold opacity-90 tracking-normal font-sans">Sama Dengan</span>
+                            </button>
+
+                            <!-- Button > -->
+                            <button onclick="checkCompareChoice('>')" class="btn-3d bg-gradient-to-b from-emerald-500 to-emerald-700 shadow-emerald-950 text-white rounded-2xl p-3 sm:p-4 font-fredoka text-3xl sm:text-5xl font-black flex flex-col items-center justify-center border-2 border-emerald-300 active:scale-95">
+                                &gt;
+                                <span class="text-[10px] sm:text-xs font-extrabold opacity-90 tracking-normal font-sans">Lebih Besar</span>
+                            </button>
+
+                        </div>
+                    </div>
+
+                    <!-- Compare Feedback & Explanation -->
+                    <div id="compare-feedback" class="hidden text-center p-4 rounded-2xl font-black text-xs sm:text-sm border-2">
+                        <!-- Feedback injected here -->
+                    </div>
+
+                    <!-- Next Compare Question Button -->
+                    <div class="flex justify-center pt-2">
+                        <button onclick="generateCompareQuestion()" class="btn-3d bg-purple-600 hover:bg-purple-700 shadow-purple-950 text-white font-black text-xs sm:text-sm px-6 py-3 rounded-2xl border-2 border-purple-300 flex items-center gap-2 active:scale-95 transition">
+                            <i class="fa-solid fa-forward"></i> Soal Selanjutnya
+                        </button>
+                    </div>
+
+                </div>
+            </section>
+
+
+            <!-- ========================================== -->
+            <!-- TAB 3: PETUNJUK & BANTUAN VISUAL -->
+            <!-- ========================================== -->
+            <section id="mode-help" class="hidden flex flex-col gap-4">
+                <div class="glass-card p-4 sm:p-6 rounded-3xl border-4 border-white shadow-2xl flex flex-col gap-5">
+                    
+                    <div class="border-b-2 border-slate-200 pb-3">
+                        <h2 class="font-fredoka text-xl sm:text-2xl text-indigo-900 font-bold flex items-center gap-2">
+                            💡 Rahasia Membandingkan & Mengurutkan Desimal
+                        </h2>
+                        <p class="text-xs sm:text-sm font-extrabold text-slate-500">Pahami konsep Nilai Tempat agar tidak terkecoh angka di belakang koma!</p>
+                    </div>
+
+                    <!-- Visual Explanation Cards -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        
+                        <!-- Concept 1: Nilai Tempat -->
+                        <div class="bg-indigo-50 border-2 border-indigo-200 p-4 rounded-2xl flex flex-col gap-3">
+                            <div class="flex items-center gap-2 text-indigo-800 font-fredoka text-lg font-bold">
+                                <span class="bg-indigo-600 text-white w-7 h-7 rounded-full flex items-center justify-center text-xs">1</span>
+                                Nilai Tempat Desimal
+                            </div>
+                            <p class="text-xs sm:text-sm text-slate-700 font-bold leading-relaxed">
+                                Bilangan desimal <b class="text-rose-600 font-black">2.4</b> terdiri dari dua bagian yang dipisahkan oleh tanda koma:
+                            </p>
+                            <div class="bg-white p-3 rounded-xl border border-indigo-200 flex items-center justify-around text-center font-fredoka shadow-inner">
+                                <div>
+                                    <div class="text-3xl text-rose-600 font-black">2</div>
+                                    <div class="text-[10px] text-slate-500 font-sans font-extrabold uppercase">Satuan (Utuh)</div>
+                                </div>
+                                <div class="text-3xl text-slate-400 font-black">,</div>
+                                <div>
+                                    <div class="text-3xl text-indigo-600 font-black">4</div>
+                                    <div class="text-[10px] text-slate-500 font-sans font-extrabold uppercase">Persepuluhan (0.4)</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Concept 2: Langkah Membandingkan -->
+                        <div class="bg-purple-50 border-2 border-purple-200 p-4 rounded-2xl flex flex-col gap-3">
+                            <div class="flex items-center gap-2 text-purple-800 font-fredoka text-lg font-bold">
+                                <span class="bg-purple-600 text-white w-7 h-7 rounded-full flex items-center justify-center text-xs">2</span>
+                                Urutan Langkah Membandingkan
+                            </div>
+                            <ul class="text-xs sm:text-sm text-slate-700 font-bold space-y-2">
+                                <li class="flex items-start gap-2">
+                                    <span class="text-purple-600">▪</span>
+                                    <span><b>Langkah 1:</b> Bandingkan angka <u>Satuan</u> (sebelum koma) terlebih dahulu. Siapa yang lebih besar, dialah yang lebih besar! (Contoh: <b>3</b>.1 &gt; <b>2</b>.9)</span>
+                                </li>
+                                <li class="flex items-start gap-2">
+                                    <span class="text-purple-600">▪</span>
+                                    <span><b>Langkah 2:</b> Jika angka Satuannya sama, baru bandingkan angka <u>Persepuluhan</u> (setelah koma). (Contoh: 2.<b>8</b> &gt; 2.<b>5</b>)</span>
+                                </li>
+                            </ul>
+                        </div>
+
+                    </div>
+
+                    <!-- Simbol Refresher Box -->
+                    <div class="bg-amber-50 border-2 border-amber-200 p-4 rounded-2xl">
+                        <h3 class="font-fredoka text-base text-amber-900 font-bold mb-2">📌 Arti Simbol Perbandingan:</h3>
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 text-center text-xs sm:text-sm font-extrabold">
+                            <div class="bg-white p-2.5 rounded-xl border border-amber-300 shadow-sm">
+                                <span class="text-indigo-600 font-black font-fredoka text-xl">&lt;</span><br>
+                                <b>Lebih Kecil Dari</b><br>
+                                <span class="text-[11px] text-slate-500 font-normal">Contoh: 1.2 &lt; 2.5</span>
+                            </div>
+                            <div class="bg-white p-2.5 rounded-xl border border-amber-300 shadow-sm">
+                                <span class="text-amber-600 font-black font-fredoka text-xl">=</span><br>
+                                <b>Sama Dengan</b><br>
+                                <span class="text-[11px] text-slate-500 font-normal">Contoh: 3.4 = 3.4</span>
+                            </div>
+                            <div class="bg-white p-2.5 rounded-xl border border-amber-300 shadow-sm">
+                                <span class="text-emerald-600 font-black font-fredoka text-xl">&gt;</span><br>
+                                <b>Lebih Besar Dari</b><br>
+                                <span class="text-[11px] text-slate-500 font-normal">Contoh: 4.8 &gt; 1.9</span>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </section>
+
+        </main>
+
+        <!-- FOOTER WITH DEVELOPER CREDIT -->
+        <footer class="mt-4 text-center text-xs font-black text-white drop-shadow-md py-2 bg-black/20 rounded-2xl backdrop-blur-sm max-w-5xl mx-auto w-full border border-white/20">
+            <p>Media Pembelajaran Interaktif Matematika SD Kelas 6 • Mengurutkan & Membandingkan Desimal</p>
+            <p class="text-amber-300 font-extrabold mt-0.5">Disusun & Dikembangkan Oleh: <u>I Nengah Hariana, S.Pd</u></p>
+        </footer>
+
+    </div>
+
+    <!-- DEVELOPER INFO MODAL -->
+    <div id="dev-modal" class="hidden fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="glass-card max-w-md w-full rounded-3xl p-6 border-4 border-white shadow-2xl text-center flex flex-col gap-4 animate-pulse-subtle">
+            <div class="w-20 h-20 bg-gradient-to-tr from-amber-400 to-rose-400 rounded-full border-4 border-white mx-auto flex items-center justify-center text-4xl shadow-lg">
+                👨‍🏫
+            </div>
+            <div>
+                <h3 class="font-fredoka text-2xl font-black text-indigo-900">I Nengah Hariana, S.Pd</h3>
+                <p class="text-xs font-extrabold text-rose-600 bg-rose-100 px-3 py-1 rounded-full w-fit mx-auto mt-1 border border-rose-300">
+                    Pengembang Media Pembelajaran Interaktif
+                </p>
+            </div>
+            <p class="text-xs text-slate-600 font-extrabold leading-relaxed">
+                Media pembelajaran ini dirancang khusus untuk mempermudah pemahaman siswa SD Kelas 6 dalam menguasai konsep bilangan desimal melalui pendekatan visual berwarna-warni dan permainan interaktif.
+            </p>
+            <button onclick="toggleDevModal()" class="btn-3d bg-indigo-600 text-white font-black py-2.5 rounded-2xl border-2 border-indigo-300 active:scale-95 shadow-indigo-950">
+                Tutup Informasi
+            </button>
+        </div>
+    </div>
+
+
+    <!-- AUDIO & LOGIC ENGINE -->
+    <script>
+        // WEB AUDIO SYNTHESIZER
+        class SoundFX {
+            constructor() { this.ctx = null; }
+            init() { if (!this.ctx) this.ctx = new (window.AudioContext || window.webkitAudioContext)(); }
+            playPop() {
+                this.init();
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(450, this.ctx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(850, this.ctx.currentTime + 0.08);
+                gain.gain.setValueAtTime(0.2, this.ctx.currentTime);
+                gain.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + 0.08);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start(); osc.stop(this.ctx.currentTime + 0.08);
+            }
+            playDrop() {
+                this.init();
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(300, this.ctx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(150, this.ctx.currentTime + 0.1);
+                gain.gain.setValueAtTime(0.25, this.ctx.currentTime);
+                gain.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + 0.1);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start(); osc.stop(this.ctx.currentTime + 0.1);
+            }
+            playCorrect() {
+                this.init();
+                const notes = [523.25, 659.25, 783.99, 1046.50];
+                notes.forEach((freq, idx) => {
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = 'triangle';
+                    osc.frequency.value = freq;
+                    const startTime = this.ctx.currentTime + (idx * 0.07);
+                    gain.gain.setValueAtTime(0.25, startTime);
+                    gain.gain.linearRampToValueAtTime(0.01, startTime + 0.2);
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start(startTime); osc.stop(startTime + 0.2);
+                });
+            }
+            playWrong() {
+                this.init();
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(240, this.ctx.currentTime);
+                osc.frequency.linearRampToValueAtTime(120, this.ctx.currentTime + 0.25);
+                gain.gain.setValueAtTime(0.2, this.ctx.currentTime);
+                gain.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + 0.25);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start(); osc.stop(this.ctx.currentTime + 0.25);
+            }
+        }
+        const sfx = new SoundFX();
+
+        // GLOBAL STATES
+        let activeTab = 'sort';
+        
+        // Mode 1: Sort State
+        let sortNumbers = []; // 5 random decimal floats
+        let sortDirection = 'asc'; // 'asc' | 'desc'
+        let draggedCardValue = null;
+        let selectedCardElement = null; // For click-to-select tap mode
+        let slotContents = [null, null, null, null, null];
+
+        // Mode 2: Compare State
+        let compareLeftVal = 0;
+        let compareRightVal = 0;
+        let compareScore = 0;
+
+        // VIBRANT RAINBOW COLOR PALETTE FOR 5 CARDS
+        const rainbowGradients = [
+            'from-rose-500 via-pink-500 to-rose-600 text-white border-rose-300 shadow-rose-950',
+            'from-amber-400 via-yellow-400 to-orange-500 text-amber-950 border-amber-200 shadow-orange-950',
+            'from-emerald-400 via-teal-500 to-emerald-600 text-white border-emerald-300 shadow-teal-950',
+            'from-sky-400 via-cyan-500 to-blue-600 text-white border-sky-300 shadow-blue-950',
+            'from-purple-500 via-indigo-500 to-purple-700 text-white border-purple-300 shadow-purple-950'
+        ];
+
+        window.onload = () => {
+            resetSortGame();
+            generateCompareQuestion();
+        };
+
+        // DEVELOPER MODAL TOGGLE
+        function toggleDevModal() {
+            sfx.playPop();
+            const modal = document.getElementById('dev-modal');
+            modal.classList.toggle('hidden');
+        }
+
+        // TAB SWITCHER
+        function switchTab(tab) {
+            sfx.playPop();
+            activeTab = tab;
+
+            ['sort', 'compare', 'help'].forEach(t => {
+                const btn = document.getElementById(`tab-${t}`);
+                const sec = document.getElementById(`mode-${t}`);
+                if (t === tab) {
+                    btn.className = "px-3 py-2 rounded-xl font-black text-xs sm:text-sm transition-all shadow-md bg-indigo-600 text-white flex items-center justify-center gap-1.5";
+                    sec.classList.remove('hidden');
+                } else {
+                    btn.className = "px-3 py-2 rounded-xl font-black text-xs sm:text-sm transition-all text-slate-700 hover:bg-slate-300 flex items-center justify-center gap-1.5";
+                    sec.classList.add('hidden');
+                }
+            });
+        }
+
+        // ==========================================
+        // LOGIC MODE 1: MENGURUTKAN 5 BILANGAN DESIMAL
+        // ==========================================
+        function setSortDirection(dir) {
+            sfx.playPop();
+            sortDirection = dir;
+            const btnAsc = document.getElementById('btn-asc');
+            const btnDesc = document.getElementById('btn-desc');
+            const labelStart = document.getElementById('label-start');
+            const labelEnd = document.getElementById('label-end');
+
+            if (dir === 'asc') {
+                btnAsc.className = "px-3.5 py-2 rounded-xl font-black text-xs sm:text-sm bg-indigo-600 text-white shadow";
+                btnDesc.className = "px-3.5 py-2 rounded-xl font-black text-xs sm:text-sm bg-slate-200 text-slate-700 hover:bg-slate-300";
+                labelStart.innerText = "⬅️ Terkecil";
+                labelEnd.innerText = "Terbesar ➡️";
+            } else {
+                btnDesc.className = "px-3.5 py-2 rounded-xl font-black text-xs sm:text-sm bg-indigo-600 text-white shadow";
+                btnAsc.className = "px-3.5 py-2 rounded-xl font-black text-xs sm:text-sm bg-slate-200 text-slate-700 hover:bg-slate-300";
+                labelStart.innerText = "⬅️ Terbesar";
+                labelEnd.innerText = "Terkecil ➡️";
+            }
+
+            hideSortFeedback();
+        }
+
+        function generateRandomDecimals() {
+            const set = new Set();
+            while (set.size < 5) {
+                // Generate 1 decimal place numbers between 0.1 and 19.9
+                const val = (Math.floor(Math.random() * 198) + 1) / 10;
+                set.add(val.toFixed(1));
+            }
+            return Array.from(set).map(n => parseFloat(n));
+        }
+
+        function resetSortGame() {
+            sfx.playPop();
+            sortNumbers = generateRandomDecimals();
+            slotContents = [null, null, null, null, null];
+            selectedCardElement = null;
+
+            hideSortFeedback();
+            renderSortSourceCards();
+            renderSortSlots();
+        }
+
+        function renderSortSourceCards() {
+            const container = document.getElementById('source-cards-container');
+            container.innerHTML = '';
+
+            sortNumbers.forEach((val, idx) => {
+                // If this value is already placed in a slot, don't show in source
+                if (slotContents.includes(val)) return;
+
+                const card = createBigNumberCard(val, idx);
+                container.appendChild(card);
+            });
+
+            if (container.children.length === 0) {
+                container.innerHTML = `<span class="text-xs sm:text-sm font-extrabold text-slate-400 italic bg-white/70 px-4 py-2 rounded-xl">Semua kartu angka sudah ditempatkan di kotak jawaban!</span>`;
+            }
+        }
+
+        function createBigNumberCard(val, gradientIdx) {
+            const card = document.createElement('div');
+            const colorClass = rainbowGradients[gradientIdx % rainbowGradients.length];
+            card.className = `number-card bg-gradient-to-br ${colorClass} font-fredoka text-3xl sm:text-5xl font-black px-5 py-3.5 sm:px-7 sm:py-5 rounded-3xl border-3 cursor-pointer border-white flex items-center justify-center shadow-2xl`;
+            card.innerText = val.toFixed(1);
+            card.setAttribute('draggable', 'true');
+            card.dataset.value = val;
+
+            // DRAG EVENTS (DESKTOP)
+            card.addEventListener('dragstart', (e) => {
+                sfx.playPop();
+                draggedCardValue = val;
+                card.classList.add('dragging');
+                e.dataTransfer.setData('text/plain', val);
+            });
+
+            card.addEventListener('dragend', () => {
+                card.classList.remove('dragging');
+            });
+
+            // TAP / CLICK EVENTS (MOBILE/TABLET)
+            card.addEventListener('click', () => {
+                sfx.playPop();
+                if (selectedCardElement === card) {
+                    // Deselect
+                    card.classList.remove('selected');
+                    selectedCardElement = null;
+                } else {
+                    if (selectedCardElement) {
+                        selectedCardElement.classList.remove('selected');
+                    }
+                    selectedCardElement = card;
+                    card.classList.add('selected');
+                }
+            });
+
+            return card;
+        }
+
+        function renderSortSlots() {
+            const container = document.getElementById('target-slots-container');
+            container.innerHTML = '';
+
+            for (let i = 0; i < 5; i++) {
+                const slot = document.createElement('div');
+                const valInSlot = slotContents[i];
+
+                slot.className = `drop-slot min-h-[85px] sm:min-h-[105px] rounded-3xl border-3 ${valInSlot !== null ? 'border-amber-400 bg-white shadow-xl' : 'border-dashed border-indigo-300 bg-indigo-50/60'} flex flex-col items-center justify-center relative cursor-pointer p-1`;
+                slot.dataset.slotIndex = i;
+
+                if (valInSlot !== null) {
+                    const idxInSort = sortNumbers.indexOf(valInSlot);
+                    const card = createBigNumberCard(valInSlot, idxInSort >= 0 ? idxInSort : i);
+                    slot.appendChild(card);
+
+                    // Add remove button
+                    const removeBtn = document.createElement('button');
+                    removeBtn.className = "absolute -top-2 -right-2 bg-rose-500 text-white w-7 h-7 rounded-full text-xs font-black shadow-lg border-2 border-white flex items-center justify-center hover:bg-rose-600 active:scale-95";
+                    removeBtn.innerHTML = "×";
+                    removeBtn.onclick = (e) => {
+                        e.stopPropagation();
+                        sfx.playDrop();
+                        slotContents[i] = null;
+                        renderSortSourceCards();
+                        renderSortSlots();
+                    };
+                    slot.appendChild(removeBtn);
+
+                } else {
+                    slot.innerHTML = `<span class="text-sm font-black text-indigo-300 font-fredoka">Posisi ${i + 1}</span>`;
+                }
+
+                // DRAG OVER / DROP HANDLERS
+                slot.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    slot.classList.add('drag-over');
+                });
+
+                slot.addEventListener('dragleave', () => {
+                    slot.classList.remove('drag-over');
+                });
+
+                slot.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    slot.classList.remove('drag-over');
+                    const val = parseFloat(e.dataTransfer.getData('text/plain'));
+                    if (!isNaN(val)) {
+                        placeValueInSlot(val, i);
+                    }
+                });
+
+                // CLICK TO PLACE (MOBILE TAP)
+                slot.addEventListener('click', () => {
+                    if (selectedCardElement) {
+                        const val = parseFloat(selectedCardElement.dataset.value);
+                        placeValueInSlot(val, i);
+                        selectedCardElement = null;
+                    }
+                });
+
+                container.appendChild(slot);
+            }
+        }
+
+        function placeValueInSlot(val, slotIdx) {
+            sfx.playDrop();
+            
+            // If this value was already in another slot, clear that slot
+            const existingIdx = slotContents.indexOf(val);
+            if (existingIdx >= 0) {
+                slotContents[existingIdx] = null;
+            }
+
+            slotContents[slotIdx] = val;
+            renderSortSourceCards();
+            renderSortSlots();
+        }
+
+        function checkSortAnswer() {
+            const feedback = document.getElementById('sort-feedback');
+
+            // 1. Check if all slots filled
+            if (slotContents.includes(null)) {
+                sfx.playWrong();
+                feedback.classList.remove('hidden', 'bg-emerald-100', 'text-emerald-900', 'border-emerald-300');
+                feedback.classList.add('bg-amber-100', 'text-amber-950', 'border-amber-300', 'animate-shake');
+                feedback.innerHTML = `⚠️ <b>Masih Ada Kotak Kosong!</b> Lengkapi ke-5 kotak jawaban terlebih dahulu sebelum memeriksa.`;
+                setTimeout(() => feedback.classList.remove('animate-shake'), 400);
+                return;
+            }
+
+            // 2. Create correct expected array
+            const sortedArray = [...sortNumbers].sort((a, b) => sortDirection === 'asc' ? a - b : b - a);
+
+            // 3. Compare user slots with sorted array
+            let isCorrect = true;
+            for (let i = 0; i < 5; i++) {
+                if (slotContents[i] !== sortedArray[i]) {
+                    isCorrect = false;
+                    break;
+                }
+            }
+
+            feedback.classList.remove('hidden');
+
+            if (isCorrect) {
+                sfx.playCorrect();
+                confetti({ particleCount: 120, spread: 90, origin: { y: 0.6 } });
+
+                feedback.className = "w-full text-center p-4 rounded-2xl font-black text-xs sm:text-sm border-2 bg-emerald-100 text-emerald-900 border-emerald-400 shadow-md";
+                feedback.innerHTML = `🎉 <b>HEBAT SEKALI! URUTAN TEPAT!</b><br>Urutan ${sortDirection === 'asc' ? 'Terkecil ke Terbesar' : 'Terbesar ke Terkecil'} yang benar adalah: <b>${sortedArray.join('  ➔  ')}</b>`;
+            } else {
+                sfx.playWrong();
+                feedback.className = "w-full text-center p-4 rounded-2xl font-black text-xs sm:text-sm border-2 bg-rose-100 text-rose-900 border-rose-400 animate-shake shadow-md";
+                feedback.innerHTML = `❌ <b>BELUM TEPAT!</b> Periksa kembali angka satuan dan persepuluhannya. Tukar posisi angka yang belum sesuai!`;
+                setTimeout(() => feedback.classList.remove('animate-shake'), 400);
+            }
+        }
+
+        function hideSortFeedback() {
+            const feedback = document.getElementById('sort-feedback');
+            feedback.classList.add('hidden');
+        }
+
+
+        // ==========================================
+        // LOGIC MODE 2: MEMBANDINGKAN BILANGAN DESIMAL
+        // ==========================================
+        function generateCompareQuestion() {
+            sfx.playPop();
+
+            const feedback = document.getElementById('compare-feedback');
+            feedback.classList.add('hidden');
+            document.getElementById('compare-symbol-box').innerText = '?';
+
+            // 3 Types of questions: Left > Right, Left < Right, or Equal
+            const randType = Math.random();
+            
+            if (randType < 0.4) {
+                // Left > Right
+                compareLeftVal = (Math.floor(Math.random() * 80) + 15) / 10;
+                compareRightVal = compareLeftVal - ((Math.floor(Math.random() * 9) + 1) / 10);
+                if (compareRightVal < 0.1) compareRightVal = 0.1;
+            } else if (randType < 0.8) {
+                // Left < Right
+                compareLeftVal = (Math.floor(Math.random() * 70) + 10) / 10;
+                compareRightVal = compareLeftVal + ((Math.floor(Math.random() * 9) + 1) / 10);
+            } else {
+                // Equal
+                compareLeftVal = (Math.floor(Math.random() * 90) + 10) / 10;
+                compareRightVal = compareLeftVal;
+            }
+
+            // Fix floating precision issues
+            compareLeftVal = parseFloat(compareLeftVal.toFixed(1));
+            compareRightVal = parseFloat(compareRightVal.toFixed(1));
+
+            document.getElementById('compare-card-left').innerText = compareLeftVal.toFixed(1);
+            document.getElementById('compare-card-right').innerText = compareRightVal.toFixed(1);
+        }
+
+        function checkCompareChoice(chosenSymbol) {
+            sfx.playPop();
+
+            let correctSymbol = '=';
+            if (compareLeftVal > compareRightVal) correctSymbol = '>';
+            else if (compareLeftVal < compareRightVal) correctSymbol = '<';
+
+            document.getElementById('compare-symbol-box').innerText = chosenSymbol;
+
+            const feedback = document.getElementById('compare-feedback');
+            feedback.classList.remove('hidden');
+
+            const leftSatuan = Math.floor(compareLeftVal);
+            const rightSatuan = Math.floor(compareRightVal);
+            const leftDes = Math.round((compareLeftVal - leftSatuan) * 10);
+            const rightDes = Math.round((compareRightVal - rightSatuan) * 10);
+
+            if (chosenSymbol === correctSymbol) {
+                sfx.playCorrect();
+                compareScore += 10;
+                document.getElementById('compare-score').innerText = compareScore;
+
+                confetti({ particleCount: 75, spread: 70, origin: { y: 0.6 } });
+
+                feedback.className = "text-center p-4 rounded-2xl font-black text-xs sm:text-sm border-2 bg-emerald-100 text-emerald-900 border-emerald-400 shadow-md";
+                
+                let explanation = "";
+                if (correctSymbol === '=') {
+                    explanation = `Kedua angka memiliki Nilai Satuan (${leftSatuan}) dan Persepuluhan (${leftDes}) yang sama persis!`;
+                } else if (leftSatuan !== rightSatuan) {
+                    explanation = `Angka Satuan <b>${leftSatuan}</b> dibanding <b>${rightSatuan}</b>.`;
+                } else {
+                    explanation = `Angka Satuan sama (${leftSatuan}), tetapi angka Persepuluhan <b>${leftDes}</b> dibanding <b>${rightDes}</b>.`;
+                }
+
+                feedback.innerHTML = `🎉 <b>JAWABAN TEPAT!</b><br><b>${compareLeftVal.toFixed(1)} ${correctSymbol} ${compareRightVal.toFixed(1)}</b>. ${explanation}`;
+
+            } else {
+                sfx.playWrong();
+                feedback.className = "text-center p-4 rounded-2xl font-black text-xs sm:text-sm border-2 bg-rose-100 text-rose-900 border-rose-400 animate-shake shadow-md";
+                feedback.innerHTML = `❌ <b>BELUM TEPAT!</b><br>Jawaban yang benar adalah <b>${compareLeftVal.toFixed(1)} ${correctSymbol} ${compareRightVal.toFixed(1)}</b>. Perhatikan nilai tempatnya!`;
+                setTimeout(() => feedback.classList.remove('animate-shake'), 400);
+            }
+        }
+    </script>
+</body>
+</html>
